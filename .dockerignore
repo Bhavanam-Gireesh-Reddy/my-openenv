@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.git/
+*.egg-info/
+uvrun.out
+uvrun.err
