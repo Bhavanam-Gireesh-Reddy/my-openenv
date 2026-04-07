@@ -25,6 +25,7 @@ SAFE_COMMANDS = (
     "python -m semgrep --config perf .",
     "python -m bandit -r .",
 )
+DEFAULT_MODEL_NAME = "openai/gpt-4.1-mini"
 
 
 @dataclass(frozen=True)
@@ -175,15 +176,17 @@ def _render_fallback_comment(issue: IssueHypothesis) -> str:
 
 def _build_client() -> OpenAI | None:
     api_base_url = os.getenv("API_BASE_URL")
-    model_name = os.getenv("MODEL_NAME")
-    hf_token = os.getenv("HF_TOKEN")
+    api_key = os.getenv("API_KEY")
 
     # The hackathon runner injects these variables; when they are absent we keep
     # the baseline usable locally with deterministic comments.
-    if not api_base_url or not model_name or not hf_token:
+    if not api_base_url or not api_key:
         return None
 
-    return OpenAI(base_url=api_base_url, api_key=hf_token)
+    return OpenAI(
+        base_url=os.environ["API_BASE_URL"],
+        api_key=os.environ["API_KEY"],
+    )
 
 
 def _coerce_comment_payload(raw_text: str, issue: IssueHypothesis) -> tuple[str, ReviewDecision]:
@@ -347,12 +350,12 @@ def run_task(task_id: str, client: OpenAI | None, model_name: str | None) -> flo
 
 def main() -> None:
     api_base_url = os.getenv("API_BASE_URL")
-    model_name = os.getenv("MODEL_NAME")
-    hf_token = os.getenv("HF_TOKEN")
+    model_name = os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
+    api_key = os.getenv("API_KEY")
 
     # The rules require reading these environment variables from the system even
     # when the local fallback path is used.
-    _ = (api_base_url, model_name, hf_token)
+    _ = (api_base_url, model_name, api_key)
 
     client = _build_client()
     scores = []

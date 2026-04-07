@@ -102,7 +102,7 @@ Behavior:
    - `python -m semgrep --config perf .`
    - `python -m bandit -r .`
 4. Uses lightweight heuristics to infer the likely issue.
-5. Uses the `OpenAI` Python client for LLM-based comment drafting when `API_BASE_URL`, `MODEL_NAME`, and `HF_TOKEN` are present.
+5. Uses the `OpenAI` Python client for LLM-based comment drafting when `API_BASE_URL` and `API_KEY` are present, using `MODEL_NAME` when set and otherwise defaulting to `openai/gpt-4.1-mini`.
 6. Falls back to deterministic comments locally when those variables are missing.
 
 The script emits strict stdout markers only:
@@ -143,8 +143,8 @@ Set the required environment variables:
 
 ```bash
 export API_BASE_URL="https://router.huggingface.co/v1"
+export API_KEY="your_proxy_api_key_here"
 export MODEL_NAME="openai/gpt-4.1-mini"
-export HF_TOKEN="hf_..."
 python inference.py
 ```
 
@@ -152,8 +152,8 @@ Windows PowerShell:
 
 ```powershell
 $env:API_BASE_URL = "https://router.huggingface.co/v1"
+$env:API_KEY = "your_proxy_api_key_here"
 $env:MODEL_NAME = "openai/gpt-4.1-mini"
-$env:HF_TOKEN = "hf_..."
 python inference.py
 ```
 
@@ -162,8 +162,8 @@ python inference.py
 When you create the Docker Space, add these repository secrets or variables:
 
 1. `API_BASE_URL`
-2. `MODEL_NAME`
-3. `HF_TOKEN`
+2. `API_KEY`
+3. `MODEL_NAME` (optional, defaults to `openai/gpt-4.1-mini`)
 
 An example local template is available in [.env.example](/Users/hp/Downloads/Hackathon/.env.example).
 
