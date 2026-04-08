@@ -310,7 +310,7 @@ class EnterpriseCodeReviewEnv(Environment):
         if self._state.review_completed:
             return self._build_observation(
                 message="This review is already complete. Call reset() to start a new task.",
-                reward=-0.1,
+                reward=clamp_open_score(-0.1),
                 done=True,
             )
 
@@ -342,7 +342,7 @@ class EnterpriseCodeReviewEnv(Environment):
             message = (
                 f"{message} Step budget exhausted before a final review was submitted."
             )
-            reward = round(reward - 0.35, 4)
+            reward = clamp_open_score(reward - 0.35)
             done = True
 
         return self._build_observation(message=message, reward=reward, done=done)
@@ -493,7 +493,7 @@ class EnterpriseCodeReviewEnv(Environment):
 
         message = (
             f"Comment added on {current_file}:{line_number}. "
-            f"Quality score={graded.score:.2f}."
+            f"Quality score={graded.score:.4f}."
         )
         return message, reward
 
@@ -524,7 +524,7 @@ class EnterpriseCodeReviewEnv(Environment):
 
         message = (
             f"Review submitted with decision '{decision.value if decision else 'unknown'}'. "
-            f"Deterministic grader score={final_score:.2f}."
+            f"Deterministic grader score={final_score:.4f}."
         )
         return message, reward
 

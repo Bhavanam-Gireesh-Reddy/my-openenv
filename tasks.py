@@ -109,8 +109,8 @@ def _score_line_match(line_number: int, task: TaskDefinition) -> float:
 def clamp_open_score(score: float | None) -> float:
     numeric_score = 0.0 if score is None else float(score)
     # Ensure the score is strictly between 0 and 1 by using an epsilon.
-    # We use 0.001 to be safely away from the boundaries even after rounding.
-    epsilon = 0.001
+    # We use 0.01 to leave a clear gap from the boundaries.
+    epsilon = 0.01
     bounded_score = max(epsilon, min(1.0 - epsilon, numeric_score))
     return round(bounded_score, 4)
 
