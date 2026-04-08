@@ -302,52 +302,58 @@ def _ensure_file_open(
 
 
 def run_task(task_id: str, client: OpenAI | None, model_name: str | None) -> float:
-    env = EnterpriseCodeReviewEnv()
-    observation = env.reset(task_id=task_id)
-    _start_log(task_id)
+    try:
+        env = EnterpriseCodeReviewEnv()
+        observation = env.reset(task_id=task_id)
+        _start_log(task_id)
 
-    file_views = _view_every_file(env, observation.available_files)
-    linter_outputs = _run_all_linters(env)
-    hypothesis = _infer_issue(file_views, linter_outputs)
+        file_views = _view_every_file(env, observation.available_files)
+        linter_outputs = _run_all_linters(env)
+        hypothesis = _infer_issue(file_views, linter_outputs)
 
-    _ensure_file_open(env, env.state.current_file_path, hypothesis.file_path)
-    comment_text, decision = _draft_comment_with_llm(
-        client=client,
-        model_name=model_name,
-        task_id=task_id,
-        issue=hypothesis,
-        file_views=file_views,
-    )
-
-    comment_action = {
-        "action": ActionType.ADD_COMMENT.value,
-        "line_number": hypothesis.line_number,
-        "comment_text": comment_text,
-    }
-    observation = env.step(
-        CodeReviewAction(
-            action_type=ActionType.ADD_COMMENT,
-            line_number=hypothesis.line_number,
-            comment_text=comment_text,
+        _ensure_file_open(env, env.state.current_file_path, hypothesis.file_path)
+        comment_text, decision = _draft_comment_with_llm(
+            client=client,
+            model_name=model_name,
+            task_id=task_id,
+            issue=hypothesis,
+            file_views=file_views,
         )
-    )
-    _step_log(comment_action, observation.reward)
 
-    submit_action = {
-        "action": ActionType.SUBMIT_REVIEW.value,
-        "decision": decision.value,
-    }
-    observation = env.step(
-        CodeReviewAction(
-            action_type=ActionType.SUBMIT_REVIEW,
-            decision=decision,
+        observation = env.step(
+            CodeReviewAction(
+                action_type=ActionType.ADD_COMMENT,
+                line_number=hypothesis.line_number,
+                comment_text=comment_text,
+            )
         )
-    )
-    _step_log(submit_action, observation.reward)
+        comment_action = {
+            "action": ActionType.ADD_COMMENT.value,
+            "line_number": hypothesis.line_number,
+            "comment_text": comment_text,
+        }
+        _step_log(comment_action, observation.reward)
 
-    final_score = clamp_open_score(observation.pull_request_status.grader_score)
-    _end_log(task_id, final_score)
-    return final_score
+        observation = env.step(
+            CodeReviewAction(
+                action_type=ActionType.SUBMIT_REVIEW,
+                decision=decision,
+            )
+        )
+        submit_action = {
+            "action": ActionType.SUBMIT_REVIEW.value,
+            "decision": decision.value,
+        }
+        _step_log(submit_action, observation.reward)
+
+        final_score = clamp_open_score(observation.pull_request_status.grader_score)
+        _end_log(task_id, final_score)
+        return final_score
+    except Exception as e:
+        print(f"Error running task {task_id}: {e}")
+        final_score = clamp_open_score(0.01)
+        _end_log(task_id, final_score)
+        return final_score
 
 
 def main() -> None:

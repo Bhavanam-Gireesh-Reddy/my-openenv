@@ -82,28 +82,27 @@ def _matches_any(text: str, phrases: Sequence[str]) -> bool:
 
 def _score_keyword_groups(text: str, groups: Sequence[Sequence[str]]) -> float:
     if not groups:
-        return 1.0
+        return 0.99
     matches = sum(1 for group in groups if _matches_any(text, group))
-    return matches / len(groups)
+    return clamp_open_score(matches / len(groups))
 
 
 def _score_file_match(file_path: str, task: TaskDefinition) -> float:
     if file_path == task.primary_target_file:
-        return 1.0
+        return 0.99
     if file_path in task.related_files:
         return 0.65
-    return 0.0
+    return 0.01
 
 
 def _score_line_match(line_number: int, task: TaskDefinition) -> float:
-    distance = abs(line_number - task.primary_target_line)
-    if distance == 0:
-        return 1.0
-    if distance <= 1:
-        return 0.85
-    if distance <= 3:
-        return 0.55
-    return 0.0
+    if line_number == task.primary_target_line:
+        return 0.99
+    if abs(line_number - task.primary_target_line) <= 5:
+        return 0.75
+    if abs(line_number - task.primary_target_line) <= 15:
+        return 0.45
+    return 0.01
 
 
 def clamp_open_score(score: float | None) -> float:
@@ -130,10 +129,10 @@ def grade_single_comment(task: TaskDefinition, comment: ReviewCommentRecord) -> 
     )
     return GradedComment(
         score=clamp_open_score(score),
-        file_score=round(file_score, 4),
-        line_score=round(line_score, 4),
-        issue_score=round(issue_score, 4),
-        rationale_score=round(rationale_score, 4),
+        file_score=clamp_open_score(file_score),
+        line_score=clamp_open_score(line_score),
+        issue_score=clamp_open_score(issue_score),
+        rationale_score=clamp_open_score(rationale_score),
     )
 
 
