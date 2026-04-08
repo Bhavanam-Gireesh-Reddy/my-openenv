@@ -79,7 +79,7 @@ Each task is fully deterministic:
 
 1. Source files are embedded directly in the task definition.
 2. Safe linter outputs are simulated from fixed findings per task.
-3. Final scores are floats in `[0.0, 1.0]`.
+3. Final scores are floats in `(0.0, 1.0)`.
 4. Graders combine:
    - file correctness
    - line proximity

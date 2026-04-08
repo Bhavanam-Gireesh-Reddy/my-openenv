@@ -69,6 +69,9 @@ class GradedComment:
     rationale_score: float
 
 
+OPEN_SCORE_EPSILON = 0.0001
+
+
 def _normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
 
@@ -103,6 +106,12 @@ def _score_line_match(line_number: int, task: TaskDefinition) -> float:
     return 0.0
 
 
+def clamp_open_score(score: float | None) -> float:
+    numeric_score = 0.0 if score is None else float(score)
+    bounded_score = max(OPEN_SCORE_EPSILON, min(1.0 - OPEN_SCORE_EPSILON, numeric_score))
+    return round(bounded_score, 4)
+
+
 def grade_single_comment(task: TaskDefinition, comment: ReviewCommentRecord) -> GradedComment:
     normalized = _normalize_text(comment.comment_text)
     file_score = _score_file_match(comment.file_path, task)
@@ -117,7 +126,7 @@ def grade_single_comment(task: TaskDefinition, comment: ReviewCommentRecord) -> 
         + 0.25 * rationale_score
     )
     return GradedComment(
-        score=round(max(0.0, min(1.0, score)), 4),
+        score=clamp_open_score(score),
         file_score=round(file_score, 4),
         line_score=round(line_score, 4),
         issue_score=round(issue_score, 4),
@@ -141,7 +150,7 @@ def grade_submission(task: TaskDefinition, submission: ReviewSubmission) -> floa
     multi_file_bonus = 0.05 if task.difficulty == Difficulty.HARD and has_supporting_comment else 0.0
 
     score = (0.75 * best_comment_score) + (0.25 * decision_score) + multi_file_bonus
-    return round(max(0.0, min(1.0, score)), 4)
+    return clamp_open_score(score)
 
 
 def _render_linter_output(command: str, findings: Sequence[LinterFindingSpec]) -> str:

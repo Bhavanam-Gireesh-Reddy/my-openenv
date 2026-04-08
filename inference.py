@@ -17,7 +17,7 @@ except Exception:
 from openai import OpenAI
 
 from env import ActionType, CodeReviewAction, EnterpriseCodeReviewEnv
-from tasks import ReviewDecision
+from tasks import ReviewDecision, clamp_open_score
 
 
 SAFE_COMMANDS = (
@@ -343,7 +343,7 @@ def run_task(task_id: str, client: OpenAI | None, model_name: str | None) -> flo
     )
     _step_log(submit_action, observation.reward)
 
-    final_score = observation.pull_request_status.grader_score or 0.0
+    final_score = clamp_open_score(observation.pull_request_status.grader_score)
     _end_log(task_id, final_score)
     return final_score
 

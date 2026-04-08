@@ -15,6 +15,7 @@ from tasks import (
     ReviewDecision,
     ReviewSubmission,
     TaskDefinition,
+    clamp_open_score,
     extract_line,
     get_task,
     grade_single_comment,
@@ -157,7 +158,7 @@ class ReviewComment(BaseModel):
     file_path: str
     line_number: int = Field(..., ge=1)
     comment_text: str
-    quality_score: float = Field(..., ge=0.0, le=1.0)
+    quality_score: float = Field(..., gt=0.0, lt=1.0)
 
 
 class PullRequestStatus(BaseModel):
@@ -169,7 +170,7 @@ class PullRequestStatus(BaseModel):
     comments: list[ReviewComment] = Field(default_factory=list)
     submitted_decision: ReviewDecision | None = None
     review_completed: bool = False
-    grader_score: float | None = None
+    grader_score: float | None = Field(default=None, gt=0.0, lt=1.0)
 
 
 class CodeReviewAction(Action):
@@ -337,7 +338,7 @@ class EnterpriseCodeReviewEnv(Environment):
 
         if not done and self._state.step_count >= task.max_steps:
             self._state.review_completed = True
-            self._state.final_score = 0.0
+            self._state.final_score = clamp_open_score(0.0)
             message = (
                 f"{message} Step budget exhausted before a final review was submitted."
             )
