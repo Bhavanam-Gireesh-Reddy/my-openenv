@@ -246,7 +246,8 @@ class EnterpriseCodeReviewState(State):
     comments: list[ReviewComment] = Field(default_factory=list)
     submitted_decision: ReviewDecision | None = None
     review_completed: bool = False
-    final_score: float | None = None
+    # Initialize to 0.01 to ensure we always have a valid numerical score strictly > 0
+    final_score: float = 0.01
 
 
 class EnterpriseCodeReviewEnv(Environment):
@@ -282,7 +283,7 @@ class EnterpriseCodeReviewEnv(Environment):
             comments=[],
             submitted_decision=None,
             review_completed=False,
-            final_score=None,
+            final_score=0.01,
         )
         self._latest_linter_run = None
         self._action_counts = {}
@@ -300,6 +301,24 @@ class EnterpriseCodeReviewEnv(Environment):
         )
 
     def step(
+        self,
+        action: CodeReviewAction,
+        timeout_s: Optional[float] = None,
+        **kwargs: Any,
+    ) -> CodeReviewObservation:
+        try:
+            return self._step_internal(action, timeout_s, **kwargs)
+        except Exception as e:
+            # Absolute safety: ensure no environment crash ever returns an out-of-range value
+            # This handles unexpected edge cases in sub-handlers (handle_view_file, handle_run_linter, etc.)
+            err_msg = f"Internal Environment Error: {str(e)}"
+            return self._build_observation(
+                message=err_msg,
+                reward=clamp_open_score(0.01),
+                done=True,
+            )
+
+    def _step_internal(
         self,
         action: CodeReviewAction,
         timeout_s: Optional[float] = None,
