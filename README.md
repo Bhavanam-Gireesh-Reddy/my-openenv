@@ -115,7 +115,7 @@ The script emits strict stdout markers only:
 
 Local reproducible baseline run from [inference.py](/Users/hp/Downloads/Hackathon/inference.py):
 
-1. `easy_mutable_default`: `1.0000`
+1. `easy_mutable_default`: `0.9990`
 2. `medium_quadratic_reporting`: `0.8687`
 3. `hard_path_traversal`: `0.9062`
 

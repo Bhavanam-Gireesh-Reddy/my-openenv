@@ -295,7 +295,7 @@ class EnterpriseCodeReviewEnv(Environment):
                 "Review session initialized. Inspect the changed files, run safe analysis "
                 "commands, leave line comments, and submit a final review."
             ),
-            reward=0.0,
+            reward=clamp_open_score(0.0),
             done=False,
         )
 
@@ -333,7 +333,7 @@ class EnterpriseCodeReviewEnv(Environment):
         else:
             message, reward = self._handle_submit_review(action.decision)
 
-        reward = round(reward + base_penalty + repeat_penalty, 4)
+        reward = clamp_open_score(reward + base_penalty + repeat_penalty)
         done = self._state.review_completed
 
         if not done and self._state.step_count >= task.max_steps:
@@ -516,9 +516,11 @@ class EnterpriseCodeReviewEnv(Environment):
         self._state.final_score = final_score
 
         if decision == task.expected_decision:
-            reward = round((2.0 * final_score) - 0.25, 4)
+            reward = (2.0 * final_score) - 0.25
         else:
-            reward = round((1.5 * final_score) - 0.55, 4)
+            reward = (1.5 * final_score) - 0.55
+
+        reward = clamp_open_score(reward)
 
         message = (
             f"Review submitted with decision '{decision.value if decision else 'unknown'}'. "
