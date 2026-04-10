@@ -105,13 +105,13 @@ def _score_line_match(line_number: int, task: TaskDefinition) -> float:
     return 0.01
 
 
-def clamp_open_score(score: float | None) -> float:
+def clamp_open_score(score: float | None) -> int:
     numeric_score = 0.0 if score is None else float(score)
-    # The user requested EXACTLY 0 or 1.
+    # The user requested EXACTLY 0 or 1 as integers.
     if numeric_score < 0.5:
-        return 0.0
+        return 0
     else:
-        return 1.0
+        return 1
 
 
 def grade_single_comment(task: TaskDefinition, comment: ReviewCommentRecord) -> GradedComment:

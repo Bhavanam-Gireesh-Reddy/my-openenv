@@ -42,7 +42,7 @@ def _step_log(action: dict[str, Any], reward: float | None) -> None:
     clamped_reward = clamp_open_score(reward)
     print(
         f"[STEP] Action: {json.dumps(action, sort_keys=True)} | Reward: "
-        f"{clamped_reward:.4f}"
+        f"{clamped_reward}"
     )
 
 
@@ -52,7 +52,7 @@ def _start_log(task_id: str) -> None:
 
 def _end_log(task_id: str, score: float | None) -> None:
     clamped_score = clamp_open_score(score)
-    print(f"[END] Task: {task_id} | Score: {clamped_score:.4f}")
+    print(f"[END] Task: {task_id} | Score: {clamped_score}")
 
 
 def _extract_json_object(text: str) -> dict[str, Any]:
