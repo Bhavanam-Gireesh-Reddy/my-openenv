@@ -158,7 +158,7 @@ class ReviewComment(BaseModel):
     file_path: str
     line_number: int = Field(..., ge=1)
     comment_text: str
-    quality_score: float = Field(..., gt=0.0, lt=1.0)
+    quality_score: float = Field(..., ge=0.0, le=1.0)
 
 
 class PullRequestStatus(BaseModel):
@@ -170,7 +170,7 @@ class PullRequestStatus(BaseModel):
     comments: list[ReviewComment] = Field(default_factory=list)
     submitted_decision: ReviewDecision | None = None
     review_completed: bool = False
-    grader_score: float | None = Field(default=None, gt=0.0, lt=1.0)
+    grader_score: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
 class CodeReviewAction(Action):
